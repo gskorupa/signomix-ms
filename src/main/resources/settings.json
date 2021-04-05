@@ -1,0 +1,161 @@
+{
+    "description": "This is sample configuration",
+    "services": [
+        {
+            "id": "MessagingService",
+            "service": "com.signomix.MessagingService",
+            "properties": {
+                "port": "8080",
+                "time-zone": "GMT",
+                "admin-notification-email": ""
+            },
+            "ports": [
+                {
+                    "name": "UserConnector",
+                    "interfaceName": "UserConnectorIface",
+                    "className": "com.signomix.out.connector.UserConnector",
+                    "properties": {
+                    }
+                },
+                {
+                    "name": "CmsConnector",
+                    "interfaceName": "UserConnectorIface",
+                    "className": "com.signomix.out.connector.CmsConnector",
+                    "properties": {
+                    }
+                },{
+                    "name": "smtpNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.SmtpNotificator",
+                    "properties": {
+                        "from": "$SIGNOMIX_SMTP_FROM",
+                        "mailhost": "$SIGNOMIX_SMTP_HOST",
+                        "localhost": "",
+                        "user": "$SIGNOMIX_SMTP_USER",
+                        "password": "$SIGNOMIX_SMTP_PASSWORD",
+                        "debug-session": "false"
+                    }
+                },
+                {
+                    "name": "pushoverNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.PushoverNotificator",
+                    "properties": {
+                        "url": "https://api.pushover.net/1/messages.json",
+                        "token": "$SIGNOMIX_PUSHOVER_TOKEN",
+                        "ignore-certificate-check": "true"
+                    }
+                },
+                {
+                    "name": "telegramNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.TelegramNotificator",
+                    "properties": {
+                        "url": "https://api.telegram.org/",
+                        "token": "$SIGNOMIX_TELEGRAM_TOKEN",
+                        "token-2": "935476658:AAH7lNOEiGCPAXuKbSd103Xo-LVtM-UH3mw",
+                        "ignore-certificate-check": "true"
+                    }
+                },
+                {
+                    "name": "discordNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.DiscordNotificator",
+                    "properties": {
+                        "ignore-certificate-check": "true"
+                    }
+                },
+                {
+                    "name": "slackNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.SlackNotificator",
+                    "properties": {
+                        "url": "https://hooks.slack.com/services/",
+                        "ignore-certificate-check": "true"
+                    }
+                },
+                {
+                    "name": "webhookNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.WebhookNotificator",
+                    "properties": {
+                        "ignore-certificate-check": "true"
+                    }
+                },
+                {
+                    "name": "smsNotification",
+                    "interfaceName": "NotificationIface",
+                    "className": "com.signomix.out.notification.ServerSmsNotificator",
+                    "properties": {
+                        "url": "https://api2.serwersms.pl/messages/send_sms",
+                        "login": "$SIGNOMIX_SMS_LOGIN",
+                        "password": "$SIGNOMIX_SMS_PASSWORD",
+                        "ignore-certificate-check": "true"
+                    }
+                },
+                {
+                    "name": "emailSender",
+                    "interfaceName": "EmailSenderIface",
+                    "className": "com.signomix.out.notification.SmtpSender",
+                    "properties": {
+                        "from": "$SIGNOMIX_EMAIL_FROM",
+                        "mailhost": "$SIGNOMIX_EMAIL_HOST",
+                        "localhost": "",
+                        "user": "$SIGNOMIX_EMAIL_USER",
+                        "password": "$SIGNOMIX_EMAIL_PASSWORD",
+                        "startttls": "false",
+                        "debug-session": "false"
+                    }
+                },
+                {
+                    "name": "SubscriberService",
+                    "interfaceName": "HttpAdapterIface",
+                    "className": "com.signomix.in.http.SubscriberApi",
+                    "properties": {
+                        "context": "/api/subscribe",
+                        "silent-mode": "false"
+                    }
+                },
+                {
+                    "name": "MailingServiceApi",
+                    "interfaceName": "HttpAdapterIface",
+                    "className": "com.signomix.in.http.MailingApi",
+                    "properties": {
+                        "context": "/api/mailing",
+                        "authorized": "admin",
+                        "silent-mode": "false"
+                    }
+                },
+                {
+                    "name": "MailingService",
+                    "interfaceName": "MailingIface",
+                    "className": "com.signomix.out.mailing.MailingAdapter",
+                    "properties": {
+                        "reports-path": "/reports"
+                    }
+                },
+                {
+                    "name": "CommandWebHook",
+                    "interfaceName": "CommandWebHookIface",
+                    "className": "com.signomix.out.notification.CommandWebHookClient",
+                    "properties": {
+                        "url": "http://httpbin.org/post",
+                        "print-response": "true"
+                    }
+                },
+                {
+                    "name": "EventListener",
+                    "interfaceName": "",
+                    "classFullName": "com.signomix.in.dispatcher.RabbitEventListener",
+                    "description": "",
+                    "properties": {
+                        "url": "rabbitmq",
+                        "user": "admin",
+                        "password": "rabbit",
+                        "exchange": "events"
+                    }
+                }
+            ]
+        }
+    ]
+}
