@@ -15,9 +15,9 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import org.cricketmsf.Adapter;
-import org.cricketmsf.Event;
-import org.cricketmsf.Kernel;
 import org.cricketmsf.out.OutboundAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -25,6 +25,7 @@ import org.cricketmsf.out.OutboundAdapter;
  */
 public class SmtpNotificator extends OutboundAdapter implements NotificationIface, Adapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(SmtpNotificator.class);
     String from = "";
     String cc = null;
     String bcc = null;
@@ -56,34 +57,34 @@ public class SmtpNotificator extends OutboundAdapter implements NotificationIfac
         debugSession = properties.getOrDefault("debug-session", "false");
         startTls = properties.getOrDefault("starttls", "false");
         usingTls = Boolean.getBoolean(startTls);
-        
-        if(from.startsWith("$")){
-            from=System.getenv(from.substring(1));
+
+        if (from.startsWith("$")) {
+            from = System.getenv(from.substring(1));
         }
-        if(mailhost.startsWith("$")){
-            mailhost=System.getenv(mailhost.substring(1));
+        if (mailhost.startsWith("$")) {
+            mailhost = System.getenv(mailhost.substring(1));
         }
-        if(user.startsWith("$")){
-            user=System.getenv(user.substring(1));
+        if (user.startsWith("$")) {
+            user = System.getenv(user.substring(1));
         }
-        if(password.startsWith("$")){
-            password=System.getenv(password.substring(1));
+        if (password.startsWith("$")) {
+            password = System.getenv(password.substring(1));
         }
 
         if (from.isEmpty() || mailhost.isEmpty() || user.isEmpty() || password.isEmpty()) {
             ready = false;
         }
-        Kernel.getInstance().getLogger().print("\tfrom: " + from);
-        Kernel.getInstance().getLogger().print("\tcc: " + cc);
-        Kernel.getInstance().getLogger().print("\tbcc: " + bcc);
-        Kernel.getInstance().getLogger().print("\tmailhost: " + mailhost);
-        Kernel.getInstance().getLogger().print("\tlocalhost: " + localhost);
-        Kernel.getInstance().getLogger().print("\tprotocol: " + protocol);
-        Kernel.getInstance().getLogger().print("\tmailer: " + mailer);
-        Kernel.getInstance().getLogger().print("\tuser: " + user);
-        Kernel.getInstance().getLogger().print("\tstarttls: " + startTls);
-        Kernel.getInstance().getLogger().print("\tpassword: " + (password.isEmpty() ? "" : "******"));
-        Kernel.getInstance().getLogger().print("\tdebug-session: " + debugSession);
+        logger.info("\tfrom: " + from);
+        logger.info("\tcc: " + cc);
+        logger.info("\tbcc: " + bcc);
+        logger.info("\tmailhost: " + mailhost);
+        logger.info("\tlocalhost: " + localhost);
+        logger.info("\tprotocol: " + protocol);
+        logger.info("\tmailer: " + mailer);
+        logger.info("\tuser: " + user);
+        logger.info("\tstarttls: " + startTls);
+        logger.info("\tpassword: " + (password.isEmpty() ? "" : "******"));
+        logger.info("\tdebug-session: " + debugSession);
     }
 
     @Override
@@ -94,7 +95,7 @@ public class SmtpNotificator extends OutboundAdapter implements NotificationIfac
     @Override
     public String send(String recipient, String nodeName, String message) {
         if (!ready) {
-            Kernel.handle(Event.logWarning(this.getClass().getSimpleName(), "not configured"));
+            logger.warn("not configured");
             return "ERROR: nor configured";
         }
         String result = "OK";
@@ -135,10 +136,10 @@ public class SmtpNotificator extends OutboundAdapter implements NotificationIfac
             mime.setSentDate(new Date());
             mime.setRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
             if (cc != null) {
-                mime.setRecipients(Message.RecipientType.CC,cc);
+                mime.setRecipients(Message.RecipientType.CC, cc);
             }
             if (bcc != null) {
-                mime.setRecipients(Message.RecipientType.BCC,bcc);
+                mime.setRecipients(Message.RecipientType.BCC, bcc);
             }
 
             Transport transport = session.getTransport("smtps");
@@ -147,8 +148,8 @@ public class SmtpNotificator extends OutboundAdapter implements NotificationIfac
             transport.close();
         } catch (MessagingException e) {
             e.printStackTrace();
-            Kernel.handle(Event.logWarning(this.getClass().getSimpleName(), "smtp user=" + user));
-            Kernel.handle(Event.logWarning(this.getClass().getSimpleName(), e.getMessage()));
+            logger.warn("smtp user=" + user);
+            logger.warn(e.getMessage());
             result = "ERROR: " + e.getMessage();
         }
 

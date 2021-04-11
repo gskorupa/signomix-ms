@@ -4,21 +4,25 @@
  */
 package com.signomix.out.notification;
 
+import com.signomix.util.HttpClientHelper;
+import com.signomix.util.HttpClientHelperResponse;
 import java.util.HashMap;
 import java.util.Map;
 import org.cricketmsf.Adapter;
-import org.cricketmsf.exception.AdapterException;
-import org.cricketmsf.in.http.Result;
-import org.cricketmsf.out.http.HttpClient;
-import org.cricketmsf.out.http.Request;
+import org.cricketmsf.out.OutboundAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SlackNotificator extends OutboundAdapter implements NotificationIface, Adapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(SlackNotificator.class);
     protected HashMap<String, Object> statusMap = null;
+    private String url="";
 
     @Override
     public void loadProperties(HashMap<String, String> properties, String adapterName) {
         super.loadProperties(properties, adapterName);
+        url=properties.getOrDefault("url", "");
     }
 
     @Override
@@ -29,26 +33,15 @@ public class SlackNotificator extends OutboundAdapter implements NotificationIfa
     @Override
     public String send(String recipient, String nodeName, String message) {
         String data = "{\"text\":\"" + nodeName + " " + message + "\"}";
-        Result r = null;
-        Request request = new Request()
-                .setMethod("POST")
-                .setUrl(endpointURL + recipient)
-                .setProperty("Content-type", "application/json")
-                .setData(data);
-        try {
-            r = send(request);
-        } catch (AdapterException ex) {
-            if (null == r) {
-                return "ERROR " + r.getCode() + ": " + r.getMessage();
-            } else {
-                return "ERROR";
-            }
+        HashMap<String, String> headers = new HashMap<>();
+
+        HttpClientHelper helper = new HttpClientHelper("Signomix CE", 10);
+        HttpClientHelperResponse response = helper.sendJson(url, headers, data);
+        if (response.code != 200) {
+            logger.warn("response code {}, {}", response.code, response.text);
+            return "ERROR " + response.code + ": " + response.text;
         }
-        if (r.getCode() != 200) {
-            return "ERROR " + r.getCode() + ": " + r.getMessage();
-        } else {
-            return "OK";
-        }
+        return "OK";
     }
 
     @Override

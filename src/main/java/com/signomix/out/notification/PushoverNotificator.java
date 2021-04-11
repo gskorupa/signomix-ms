@@ -4,7 +4,12 @@
  */
 package com.signomix.out.notification;
 
+import com.signomix.util.HttpClientHelper;
+import com.signomix.util.HttpClientHelperResponse;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.logging.Level;
 import org.cricketmsf.Adapter;
 import org.cricketmsf.out.OutboundAdapter;
 import org.slf4j.Logger;
@@ -45,28 +50,23 @@ public class PushoverNotificator extends OutboundAdapter implements Notification
             logger.warn("not configured");
             return "ERROR: not configured";
         }
-/*
-        StandardResult result = new StandardResult();
-        Request r = new Request();
-        r.properties.put("Content-Type", "application/x-www-form-urlencoded");
-        r.method = "POST";
+        HashMap<Object, Object> parameters = new HashMap<>();
+        parameters.put("token", token);
+        parameters.put("user", recipient);
         try {
-            StringBuilder sb = new StringBuilder();
-            sb.append("token=").append(token).append("&");
-            sb.append("user=").append(recipient).append("&");
-            sb.append("message=").append(URLEncoder.encode(nodeName + ": " + message, "UTF-8"));
-            r.setData(sb.toString());
-            result = (StandardResult) send(r, false);
-        } catch (AdapterException | UnsupportedEncodingException e) {
-            return "ERROR: " + e.getMessage();
+            parameters.put("message", URLEncoder.encode(nodeName + ": " + message, "UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            return "ERROR: " +ex.getMessage();
         }
-        if (result.getCode() == 200) {
-            return new String(result.getPayload());
-        } else {
-            return "ERROR: " + result.getCode() + " " + result.getPayload();
+        HashMap<String, String> headers = new HashMap<>();
+        
+        HttpClientHelper helper = new HttpClientHelper("Signomix CE", 10);
+        HttpClientHelperResponse response = helper.sendForm(url, headers, parameters);
+        if(response.code!=200){
+            logger.warn("response code {}, {}",response.code, response.text);
+            return "ERROR: " + response.code + " " + response.text;
         }
-*/
-return null;
+        return response.text;
     }
 
     @Override

@@ -7,6 +7,8 @@ package com.signomix.out.notification;
 import java.util.HashMap;
 import org.cricketmsf.Adapter;
 import org.cricketmsf.out.OutboundAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -14,6 +16,7 @@ import org.cricketmsf.out.OutboundAdapter;
  */
 public class ServerSmsNotificator extends OutboundAdapter implements NotificationIface, Adapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(ServerSmsNotificator.class);
     private String url;
     private String login;
     private String password;
@@ -69,9 +72,9 @@ public class ServerSmsNotificator extends OutboundAdapter implements Notificatio
     }
      */
     public String send(String userID, String recipient, String nodeName, String message) {
-        /*
+
         if (!ready) {
-            Kernel.getInstance().dispatchEvent(Event.logWarning(this.getClass().getSimpleName(), "not configured"));
+            logger.warn("not configured");
             return "ERROR: not configured";
         }
         setCertificateCheck(false);
@@ -94,7 +97,6 @@ public class ServerSmsNotificator extends OutboundAdapter implements Notificatio
             return "ERROR: " + e.getMessage();
         }
         String response = new String(result.getPayload());
-        //System.out.println(response);
         if (result.getCode() == 200) {
             try {
                 //ERROR:
@@ -113,21 +115,19 @@ public class ServerSmsNotificator extends OutboundAdapter implements Notificatio
                     return "ERROR: unknown";
                 }
             } catch (Exception e) {
-                Kernel.getInstance().dispatchEvent(Event.logSevere(this.getClass().getSimpleName(), "deserialization problem: " + e.getMessage()));
+                logger.error("deserialization problem: " + e.getMessage());
             }
-            Kernel.getInstance().dispatchEvent(new SignomixUserEvent(SignomixUserEvent.USER_SMS_SENT, userID));
+            Kernel.getInstance().dispatch(new SmsSent(userID));
             return "OK";
         } else {
             return "ERROR: " + result.getCode() + " " + result.getPayload();
         }
-         */
-        return null;
     }
 
     public String send3(String recipient, String nodeName, String message) {
-        /*
+
         if (!ready) {
-            Kernel.getInstance().dispatchEvent(Event.logWarning(this.getClass().getSimpleName(), "not configured"));
+            logger.warn("not configured");
             return "ERROR: not configured";
         }
         setCertificateCheck(false);
@@ -170,8 +170,6 @@ public class ServerSmsNotificator extends OutboundAdapter implements Notificatio
         } else {
             return "ERROR: " + result.getCode() + " " + result.getPayload();
         }
-         */
-        return null;
     }
 
     @Override

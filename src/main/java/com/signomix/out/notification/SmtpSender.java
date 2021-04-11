@@ -15,10 +15,10 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import org.cricketmsf.Adapter;
-import org.cricketmsf.Event;
-import org.cricketmsf.Kernel;
 import org.cricketmsf.microsite.out.notification.EmailSenderIface;
 import org.cricketmsf.out.OutboundAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -26,6 +26,7 @@ import org.cricketmsf.out.OutboundAdapter;
  */
 public class SmtpSender extends OutboundAdapter implements EmailSenderIface, Adapter {
 
+    private static final Logger logger = LoggerFactory.getLogger(SmtpSender.class);
     String from = "";
     String cc = null;
     String bcc = null;
@@ -62,41 +63,41 @@ public class SmtpSender extends OutboundAdapter implements EmailSenderIface, Ada
             port = Integer.parseInt(properties.get("port"));
         } catch (Exception e) {
         }
-        
-        if(from.startsWith("$")){
-            from=System.getenv(from.substring(1));
+
+        if (from.startsWith("$")) {
+            from = System.getenv(from.substring(1));
         }
-        if(mailhost.startsWith("$")){
-            mailhost=System.getenv(mailhost.substring(1));
+        if (mailhost.startsWith("$")) {
+            mailhost = System.getenv(mailhost.substring(1));
         }
-        if(user.startsWith("$")){
-            user=System.getenv(user.substring(1));
+        if (user.startsWith("$")) {
+            user = System.getenv(user.substring(1));
         }
-        if(password.startsWith("$")){
-            password=System.getenv(password.substring(1));
+        if (password.startsWith("$")) {
+            password = System.getenv(password.substring(1));
         }
-        
+
         if (from.isEmpty() || mailhost.isEmpty() || user.isEmpty() || password.isEmpty()) {
             ready = false;
         }
-        Kernel.getInstance().getLogger().print("\tfrom: " + from);
-        Kernel.getInstance().getLogger().print("\tcc: " + cc);
-        Kernel.getInstance().getLogger().print("\tbcc: " + bcc);
-        Kernel.getInstance().getLogger().print("\tmailhost: " + mailhost);
-        Kernel.getInstance().getLogger().print("\tlocalhost: " + localhost);
-        Kernel.getInstance().getLogger().print("\tprotocol: " + protocol);
-        Kernel.getInstance().getLogger().print("\tmailer: " + mailer);
-        Kernel.getInstance().getLogger().print("\tstarttls: " + startTls);
-        Kernel.getInstance().getLogger().print("\tport: " + port);
-        Kernel.getInstance().getLogger().print("\tuser: " + user);
-        Kernel.getInstance().getLogger().print("\tpassword: " + (password.isEmpty() ? "" : "******"));
-        Kernel.getInstance().getLogger().print("\tdebug-session: " + debugSession);
+        logger.info("\tfrom: " + from);
+        logger.info("\tcc: " + cc);
+        logger.info("\tbcc: " + bcc);
+        logger.info("\tmailhost: " + mailhost);
+        logger.info("\tlocalhost: " + localhost);
+        logger.info("\tprotocol: " + protocol);
+        logger.info("\tmailer: " + mailer);
+        logger.info("\tstarttls: " + startTls);
+        logger.info("\tport: " + port);
+        logger.info("\tuser: " + user);
+        logger.info("\tpassword: " + (password.isEmpty() ? "" : "******"));
+        logger.info("\tdebug-session: " + debugSession);
     }
 
     @Override
     public String send(String recipient, String topic, String content) {
-        if(!ready){
-            Kernel.handle(Event.logWarning(this, "not configured"));
+        if (!ready) {
+            logger.warn("not configured");
             return "";
         }
         String result = "OK";
@@ -151,8 +152,8 @@ public class SmtpSender extends OutboundAdapter implements EmailSenderIface, Ada
             transport.close();
         } catch (MessagingException e) {
             e.printStackTrace();
-            Kernel.handle(Event.logWarning(this.getClass().getSimpleName(), "smtp user=" + user));
-            Kernel.handle(Event.logWarning(this.getClass().getSimpleName(), e.getMessage()));
+            logger.warn("smtp user=" + user);
+            logger.warn(e.getMessage());
             result = "ERROR: " + e.getMessage();
         }
         return result;

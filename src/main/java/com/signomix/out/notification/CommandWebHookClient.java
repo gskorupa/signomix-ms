@@ -106,39 +106,6 @@ public class CommandWebHookClient extends OutboundAdapter implements CommandWebH
             logger.warn("response code {}, {}",response.code, response.text);
         }
         return response.code==200;
-        /*
-        HttpClient httpClient = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-
-        // form parameters
-        Map<Object, Object> data = new HashMap<>();
-        data.put("payload", payload);
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .POST(ofFormData(data))
-                .uri(URI.create(downlink))
-                .setHeader("User-Agent", "Signomix CE") // add request header
-                .setHeader("X-device-eui", deviceEUI)
-                .setHeader("Authorization", deviceKey)
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .build();
-
-        try {
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (printResponse) {
-                System.out.println("RESP CODE:" + response.statusCode());
-                System.out.println("RESP BODY:" + response.body());
-            }
-            return response.statusCode() == 200;
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-        */
     }
 
     private boolean sendJson(String downlink, String deviceEUI, String deviceKey, String json) {
@@ -152,36 +119,6 @@ public class CommandWebHookClient extends OutboundAdapter implements CommandWebH
             logger.warn("response code {}, {}",response.code, response.text);
         }
         return response.code==200;
-        /*
-        HttpClient httpClient = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-
-        // add json header
-        HttpRequest request = HttpRequest.newBuilder()
-                .POST(HttpRequest.BodyPublishers.ofString(json))
-                .uri(URI.create(downlink))
-                .setHeader("User-Agent", "Signomix CE") // add request header
-                .setHeader("X-device-eui", deviceEUI)
-                .setHeader("Authorization", deviceKey)
-                .header("Content-Type", "application/json")
-                .build();
-
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (printResponse) {
-                System.out.println("RESP CODE:" + response.statusCode());
-                System.out.println("RESP BODY:" + response.body());
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-        */
     }
 
     public static HttpRequest.BodyPublisher ofFormData(Map<Object, Object> data) {

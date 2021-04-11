@@ -4,102 +4,89 @@
  */
 package com.signomix.out.notification;
 
+import com.signomix.util.HttpClientHelper;
+import com.signomix.util.HttpClientHelperResponse;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import org.cricketmsf.Adapter;
-import org.cricketmsf.Event;
-import org.cricketmsf.Kernel;
-import org.cricketmsf.exception.AdapterException;
-import org.cricketmsf.in.http.Result;
-import org.cricketmsf.out.http.HttpClient;
-import org.cricketmsf.out.http.Request;
+import org.cricketmsf.out.OutboundAdapter;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author greg
  */
-public class TelegramNotificator extends HttpClient implements NotificationIface, Adapter {
-
+public class TelegramNotificator extends OutboundAdapter implements NotificationIface, Adapter {
+    
+    private static final Logger logger = LoggerFactory.getLogger(TelegramNotificator.class);
     private String token;
+    private String url;
     private boolean ready = false;
-
+    
     @Override
     public void loadProperties(HashMap<String, String> properties, String adapterName) {
         super.loadProperties(properties, adapterName);
         token = properties.getOrDefault("token", ""); // application token
-        if (token.startsWith("$")) {
-            token = System.getenv(token.substring(1));
-        }
-
-        if (endpointURL.isEmpty() || token.isEmpty()) {
+        url = properties.getOrDefault("url", "");
+        if (url.isEmpty() || token.isEmpty()) {
             ready = false;
         } else {
             ready = true;
         }
-        Kernel.getInstance().getLogger().print("\ttoken: " + token);
+        logger.info("\turl: {}", url);
+        logger.info("\ttoken: {}", token);
     }
-
+    
     @Override
     public String send(String userID, String recipient, String nodeName, String message) {
         return send(recipient, nodeName, message);
     }
-
+    
     @Override
     public String send(String recipient, String nodeName, String message) {
         if (!ready) {
-            Kernel.getInstance().dispatchEvent(Event.logWarning(this.getClass().getSimpleName(), "not configured"));
+            logger.warn("not configured");
             return "ERROR: not configured";
         }
         String chatID = recipient.substring(recipient.indexOf("@") + 1);
-
-        
-        Result r = null;
-        Request request;
+        String text;
         try {
-            String text = URLEncoder.encode(""+message, "UTF-8");
-            request = new Request()
-                    .setMethod("GET")
-                    .setUrl(endpointURL + "bot" + token + "/sendMessage?chat_id=" + chatID + "&text=" + nodeName + " " + text);
+            text = URLEncoder.encode("" + message, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
+            logger.warn(ex.getMessage());
             return "ERROR: " + ex.getMessage();
         }
-        try {
-            r = send(request);
-        } catch (AdapterException ex) {
-            if (null == r) {
-                return "ERROR";
-            } else {
-                return "ERROR " + r.getCode() + ": " + r.getMessage();
-            }
+        HashMap<Object, Object> parameters = new HashMap<>();
+        parameters.put("chat_id", chatID);
+        parameters.put("text", nodeName + " " + text);
+
+        HashMap<String, String> headers = new HashMap<>();
+        String endpointUrl=url+"bot" + token + "/sendMessage";
+        HttpClientHelper helper = new HttpClientHelper("Signomix CE", 10);
+        HttpClientHelperResponse response = helper.getData(endpointUrl, headers, parameters);
+        if(response.code!=200){
+            logger.warn("response code {}, {}",response.code, response.text);
+            return "ERROR " + response.code + ": " + response.text;
         }
-        if (r.getCode() != 200) {
-            return "ERROR " + r.getCode() + ": " + r.getMessage();
-        }
-        String json = new String(r.getPayload());
+        String json = response.text;
         return "OK";
     }
-
+    
     public String getChatID(String recipent) {
-        Result r = null;
-        Request request = new Request()
-                .setMethod("GET")
-                .setUrl(endpointURL + "bot" + token + "/getUpdates");
-        try {
-            r = send(request);
-        } catch (AdapterException ex) {
-            if (null == r) {
-                return "ERROR";
-            } else {
-                return "ERROR " + r.getCode() + ": " + r.getMessage();
-            }
+        HashMap<Object, Object> parameters = new HashMap<>();
+        HashMap<String, String> headers = new HashMap<>();
+        String endpointUrl=url+"bot" + token + "/getUpdates";
+        HttpClientHelper helper = new HttpClientHelper("Signomix CE", 10);
+        HttpClientHelperResponse response = helper.getData(endpointUrl, headers, parameters);
+        if(response.code!=200){
+            logger.warn("response code {}, {}",response.code, response.text);
+            return "ERROR " + response.code + ": " + response.text;
         }
-        if (r.getCode() != 200) {
-            return "ERROR " + r.getCode() + ": " + r.getMessage();
-        }
-        String json = new String(r.getPayload());
+        String json = response.text;
         JSONObject obj = new JSONObject(json);
         JSONArray arr = obj.getJSONArray("result");
         String chat_id = null;
@@ -115,5 +102,5 @@ public class TelegramNotificator extends HttpClient implements NotificationIface
         }
         return chat_id;
     }
-
+    
 }
